@@ -75,6 +75,12 @@ fn main() {
     match os.as_str() {
         "macos" => {
             println!("cargo:rustc-link-lib=c++");
+            // ggml-metal's `@available` checks call __isPlatformVersionAtLeast, which lives in
+            // clang's runtime. clang adds it when it links; rustc's link line doesn't.
+            if let Some(dir) = clang_runtime_dir() {
+                println!("cargo:rustc-link-search=native={dir}");
+                println!("cargo:rustc-link-lib=static=clang_rt.osx");
+            }
             for f in ["Foundation", "Accelerate"] {
                 println!("cargo:rustc-link-lib=framework={f}");
             }
@@ -89,4 +95,14 @@ fn main() {
     }
     println!("cargo:rerun-if-changed=src/shim.cpp");
     println!("cargo:rerun-if-changed=build.rs");
+}
+
+/// Where clang keeps `libclang_rt.osx.a` (its runtime builtins), from `--print-search-dirs`.
+fn clang_runtime_dir() -> Option<String> {
+    let out = std::process::Command::new("clang").arg("--print-search-dirs").output().ok()?;
+    let text = String::from_utf8(out.stdout).ok()?;
+    let line = text.lines().find(|l| l.starts_with("libraries: ="))?;
+    let base = line.trim_start_matches("libraries: =").split(':').next()?;
+    let dir = format!("{base}/lib/darwin");
+    std::path::Path::new(&dir).join("libclang_rt.osx.a").exists().then_some(dir)
 }
