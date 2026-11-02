@@ -1,0 +1,20 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "bundle": {
+    "longDescription": "Pinion is a small, quiet notes app with private, on-device voice typing. Hold a key to dictate into any app, or record a meeting straight into a note.",
+    "linux": {
+      "deb": {
+        "depends": [
+          "libasound2 | libasound2t64",
+          "libssl3 | libssl3t64"
+        ]
+      },
+      "rpm": {
+        "depends": [
+          "alsa-lib",
+          "openssl-libs"
+        ]
+      }
+    }
+  }
+}

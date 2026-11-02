@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en" data-mode="dark" data-tint="paper">
+  <head>
+    <meta charset="utf-8" />
+    <title>Pinion Voice</title>
+    <link rel="stylesheet" href="pill.css" />
+    <script type="module" src="pill.js"></script>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="pill" id="pill" data-face="idle" role="status" aria-live="polite">
+        <div class="face idle">
+          <span class="hint" id="hint"></span>
+          <button class="round meet" id="meet" aria-label="Record a meeting"><span class="rec"></span></button>
+        </div>
+        <div class="face listening">
+          <button class="round soft" id="cancel" aria-label="Cancel"></button>
+          <div class="bars" id="bars"></div>
+          <button class="round soft" id="done" aria-label="Done"></button>
+          <span class="hint tail" id="tail"></span>
+        </div>
+        <div class="face working"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="face meeting">
+          <span class="live"></span>
+          <span class="clock" id="clock">0:00</span>
+          <div class="bars small" id="mbars"></div>
+          <button class="round soft" id="mstop" aria-label="Stop recording"></button>
+        </div>
+        <div class="face notice"><span id="notice"></span></div>
+      </div>
+      <span class="measure" id="measure" aria-hidden="true"></span>
+    </div>
+  </body>
+</html>

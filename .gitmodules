@@ -1,0 +1,4 @@
+[submodule "crates/parakeet-sys/whisper.cpp"]
+	path = crates/parakeet-sys/whisper.cpp
+	url = https://github.com/ggml-org/whisper.cpp
+	shallow = true

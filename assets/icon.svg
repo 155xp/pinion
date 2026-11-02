@@ -1,4 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="14" fill="#2563eb"/>
-  <text x="32" y="32" dy="0.35em" text-anchor="middle" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif" font-size="32" font-weight="600" fill="#ffffff">P</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="#f3eee4"/>
+  <rect x="101" y="101" width="822" height="822" rx="185" fill="none" stroke="#2a2723" stroke-opacity=".07" stroke-width="2"/>
+  <g transform="translate(512 524) rotate(38) scale(1.14)">
+    <path d="M0 196 C -74 152 -112 40 -100 -62 C -88 -172 -38 -262 0 -306 C 26 -258 74 -166 80 -62 C 86 42 58 146 0 196 Z" fill="#2a2723"/>
+    <path d="M-104 -120 L -40 -96 L -106 -84 Z" fill="#f3eee4"/>
+    <path d="M84 6 L 30 26 L 82 44 Z" fill="#f3eee4"/>
+    <path d="M0 -276 L 0 196" stroke="#f3eee4" stroke-width="9" stroke-linecap="round" opacity="0.55"/>
+    <path d="M0 192 L 0 300" stroke="#2a2723" stroke-width="16" stroke-linecap="round"/>
+  </g>
 </svg>

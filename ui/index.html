@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-tint="paper" data-mode="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pinion</title>
+    <link rel="stylesheet" href="app.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <div class="app" id="app">
+      <aside class="rail surface-rail" id="rail" aria-label="Notes">
+        <div class="rail-frame">
+          <div class="rail-top" data-tauri-drag-region>
+            <button class="vault-button" id="vault-button" aria-haspopup="menu" aria-expanded="false">
+              <span id="vault-name"></span><span id="vault-chevron"></span>
+            </button>
+            <button class="icon-button" id="new-note" aria-label="New note" title="New note"></button>
+            <button class="icon-button" id="open-search" aria-label="Find a note" title="Find a note"></button>
+          </div>
+          <nav class="tree" id="tree" role="tree" aria-label="Notes"></nav>
+          <div class="rail-foot">
+            <button class="rail-row" id="voice-row" hidden><span class="grow">Voice</span></button>
+            <button class="rail-row" id="settings-row" aria-haspopup="dialog"><span class="grow">Settings</span></button>
+          </div>
+        </div>
+        <div class="rail-resizer" id="rail-resizer" aria-hidden="true"></div>
+      </aside>
+      <main class="panel surface-panel" id="panel">
+        <div class="topbar" data-tauri-drag-region>
+          <button class="icon-button" id="toggle-rail" aria-label="Hide sidebar"></button>
+          <div class="spacer" data-tauri-drag-region></div>
+          <div class="crumb" id="crumb"></div>
+          <div class="window-controls" id="window-controls"></div>
+        </div>
+        <div class="scroll" id="scroll">
+          <article class="column" id="column">
+            <textarea class="title" id="title" rows="1" spellcheck="false" aria-label="Note name" placeholder="Untitled"></textarea>
+            <div class="title-error" id="title-error" role="alert" hidden></div>
+            <div class="readonly-banner" id="note-banner" hidden><span class="live"></span><span>Recording. The transcript appears here as people talk.</span></div>
+            <div class="editor" id="editor"></div>
+            <section class="backlinks" id="backlinks" hidden></section>
+          </article>
+          <div class="empty" id="empty" hidden></div>
+          <div class="voice-view" id="voice-view" hidden></div>
+        </div>
+      </main>
+      <div class="peek-zone" id="peek-zone"></div>
+    </div>
+  </body>
+</html>

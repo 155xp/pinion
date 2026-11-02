@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" data-tint="paper" data-mode="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pinion · a quiet place to write</title>
+    <meta name="description" content="Pinion is a small, quiet notes app for macOS, Windows and Linux. Plain markdown files with [[links]], and private voice typing that runs on your computer." />
+    <meta property="og:title" content="Pinion" />
+    <meta property="og:description" content="A small, quiet place to write. Markdown notes with [[links]], and voice typing that never leaves your computer." />
+    <meta property="og:image" content="https://pinion.ericomg.com/og.png" />
+    <meta property="og:url" content="https://pinion.ericomg.com" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#fbfaf8" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="style.css" />
+    <script>
+      // Paint in the visitor's chosen colours before anything shows.
+      (function () {
+        try {
+          var s = JSON.parse(localStorage.getItem("pinion-theme") || "{}");
+          var q = new URLSearchParams(location.search);
+          if (q.get("mode")) s.mode = q.get("mode");
+          if (q.get("tint")) s.tint = q.get("tint");
+          var dark = s.mode ? s.mode === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.mode = dark ? "dark" : "light";
+          document.documentElement.dataset.tint = s.tint || "paper";
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" src="site.js"></script>
+  </head>
+  <body>
+    <div class="chrome" aria-label="Colours">
+      <div class="swatches" role="radiogroup" aria-label="Colour" id="swatches"></div>
+      <button class="mode" id="mode" aria-label="Switch to dark"></button>
+    </div>
+
+    <main class="page">
+      <article class="note">
+        <img class="mark" src="icon.svg" width="56" height="56" alt="" />
+        <h1 class="title">Pinion</h1>
+        <p class="meta"><span class="word">pin·ion</span>, <em>noun</em>. The outer flight feather of a bird’s wing, the one quills were cut from.</p>
+
+        <p>Pinion is a small, quiet place to write. Your notes are plain markdown files in a folder you choose, so they stay yours, and Obsidian can open them too.</p>
+        <p>Link one thought to the next with <a class="wiki" href="#voice"><span class="br">[[</span>double brackets<span class="br">]]</span></a>. Hide the sidebar and nothing is left but the page and your words.</p>
+
+        <ul class="tasks">
+          <li><button class="check done" aria-label="Done" aria-pressed="true"></button><span>A few megabytes. No account, no cloud.</span></li>
+          <li><button class="check done" aria-label="Done" aria-pressed="true"></button><span>Links, backlinks and <span class="tag">#tags</span>, the way Obsidian does them</span></li>
+          <li><button class="check done" aria-label="Done" aria-pressed="true"></button><span>Light, dark and true black, in six calm colours</span></li>
+          <li><button class="check" aria-label="Not done" aria-pressed="false"></button><span>Your next idea</span></li>
+        </ul>
+
+        <h2 id="voice">With voice</h2>
+        <p>Hold a key and talk into any app. Let go and it’s typed for you. Tap the key instead and Pinion keeps listening until you tap again.</p>
+
+        <figure class="demo" aria-label="A sentence being dictated into a text field">
+          <div class="field"><span class="typed" id="typed"></span><span class="caret"></span></div>
+          <div class="pill" id="demo-pill" data-face="idle">
+            <div class="face listening"><div class="bars" id="demo-bars"></div></div>
+            <div class="face working"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+          </div>
+        </figure>
+
+        <p>Record a meeting and the transcript writes itself into a note as people talk, with you and the other side on separate lines.</p>
+        <p>The words come from <a class="ext" href="https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3">Parakeet</a>, NVIDIA’s speech model, running on your own computer. Nothing you say is sent anywhere.</p>
+
+        <h2 id="download">Download</h2>
+        <div class="toggle" role="radiogroup" aria-label="Which Pinion" id="variant">
+          <span class="thumb"></span>
+          <button role="radio" aria-checked="true" data-variant="plain">Pinion</button>
+          <button role="radio" aria-checked="false" data-variant="voice">Pinion with voice</button>
+        </div>
+        <p class="variant-note" id="variant-note">Notes and nothing else.</p>
+
+        <div class="get">
+          <a class="btn primary" id="primary" href="#download">
+            <span id="primary-label">Download</span>
+            <span class="size" id="primary-size"></span>
+          </a>
+          <p class="others" id="others"></p>
+        </div>
+
+        <p class="fine">Pinion isn’t signed by Apple or Microsoft yet. On a Mac, if it won’t open, go to System Settings, then Privacy & Security, and choose Open Anyway. On Windows, choose More info, then Run anyway.</p>
+      </article>
+    </main>
+
+    <footer class="foot">
+      <span>Made by <a href="https://ericomg.com">ericomg</a></span>
+      <span aria-hidden="true">·</span>
+      <a href="https://github.com/155xp/pinion">Source</a>
+      <span class="version" id="version" hidden></span>
+    </footer>
+  </body>
+</html>

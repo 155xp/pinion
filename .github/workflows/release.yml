@@ -1,0 +1,119 @@
+name: Release
+
+# Push a tag like v0.1.0 to build both variants on every platform.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag to build (it must exist)
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ inputs.tag || github.ref_name }}
+  GH_REPO: ${{ github.repository }}
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create a draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --draft \
+            --title "Pinion ${TAG#v}" \
+            --notes "Two builds for each platform: **Pinion** (notes) and **Pinion Voice** (notes plus on-device voice typing and meeting notes). Voice downloads its 416 MB speech model the first time you turn it on."
+
+  build:
+    needs: draft
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [plain, voice]
+        platform: [macos-arm64, macos-x64, windows-x64, linux]
+        include:
+          - platform: macos-arm64
+            os: macos-15
+            target: aarch64-apple-darwin
+            bundles: dmg
+          - platform: macos-x64
+            os: macos-15
+            target: x86_64-apple-darwin
+            bundles: dmg
+          - platform: windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            bundles: nsis
+          - platform: linux
+            os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            bundles: deb,rpm
+    name: ${{ matrix.variant }} · ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: ${{ matrix.variant == 'voice' && 'true' || 'false' }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.variant }}-${{ matrix.target }}
+
+      - name: Linux packages
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev libxdo-dev libssl-dev patchelf
+
+      - run: npm ci
+
+      - name: Build
+        shell: bash
+        run: |
+          args=(--target "${{ matrix.target }}" --bundles "${{ matrix.bundles }}")
+          if [ "${{ matrix.variant }}" = voice ]; then
+            args+=(--features voice --config src-tauri/tauri.voice.conf.json)
+          fi
+          npx tauri build "${args[@]}"
+
+      - name: Upload to the release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prefix=Pinion
+          if [ "${{ matrix.variant }}" = voice ]; then prefix=Pinion-Voice; fi
+          out="src-tauri/target/${{ matrix.target }}/release/bundle"
+          mkdir -p upload
+          case "${{ matrix.platform }}" in
+            macos-*)     cp "$out"/dmg/*.dmg "upload/$prefix-${{ matrix.platform }}.dmg" ;;
+            windows-x64) cp "$out"/nsis/*-setup.exe "upload/$prefix-windows-x64-setup.exe" ;;
+            linux)       cp "$out"/deb/*.deb "upload/$prefix-linux-amd64.deb"
+                         cp "$out"/rpm/*.rpm "upload/$prefix-linux-x86_64.rpm" ;;
+          esac
+          ls -la upload
+          gh release upload "$TAG" upload/* --clobber
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish once every build is in
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$TAG" --draft=false --latest

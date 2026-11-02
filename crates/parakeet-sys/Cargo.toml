@@ -1,0 +1,11 @@
+[package]
+name = "parakeet-sys"
+version = "0.1.0"
+edition = "2021"
+description = "Static build of whisper.cpp's Parakeet speech recogniser"
+license = "MIT"
+links = "parakeet"
+
+[build-dependencies]
+cmake = "0.1"
+cc = "1"

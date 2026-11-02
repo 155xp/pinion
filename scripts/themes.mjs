@@ -1,0 +1,182 @@
+// Generates ui/styles/themes.css (and web/themes.css) from a few OKLCH recipes.
+// Every theme is a 12-step tinted neutral plus one accent, in light and dark.
+// Run: node scripts/themes.mjs
+import { writeFileSync, mkdirSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+// ---------- colour math (Björn Ottosson's OKLab) ----------
+const toLin = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const fromLin = (c) => (c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055);
+
+function oklchToLin(L, C, H) {
+  const h = (H * Math.PI) / 180;
+  const a = C * Math.cos(h), b = C * Math.sin(h);
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.291485548 * b;
+  const l = l_ ** 3, m = m_ ** 3, s = s_ ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s,
+  ];
+}
+const inGamut = (lin) => lin.every((v) => v >= -1e-4 && v <= 1 + 1e-4);
+
+// Reduce chroma until the colour fits sRGB.
+function oklch(L, C, H) {
+  let lin = oklchToLin(L, C, H);
+  if (!inGamut(lin)) {
+    let lo = 0, hi = C;
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      if (inGamut(oklchToLin(L, mid, H))) lo = mid; else hi = mid;
+    }
+    lin = oklchToLin(L, lo, H);
+  }
+  return lin.map((v) => Math.min(1, Math.max(0, v)));
+}
+const hex = (lin) =>
+  "#" + lin.map((v) => Math.round(fromLin(v) * 255).toString(16).padStart(2, "0")).join("");
+const rgbTriplet = (lin) => lin.map((v) => Math.round(fromLin(v) * 255)).join(" ");
+const lum = (lin) => 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+const contrast = (a, b) => {
+  const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
+  return (x + 0.05) / (y + 0.05);
+};
+
+// ---------- ladders ----------
+// Lightness per step, tuned from Radix sand so ink-10 passes 4.5:1 for meta text.
+const LIGHT_L = [0.993, 0.982, 0.956, 0.932, 0.91, 0.888, 0.858, 0.8, 0.63, 0.555, 0.46, 0.24];
+const DARK_L = [0.178, 0.212, 0.247, 0.274, 0.299, 0.329, 0.374, 0.452, 0.53, 0.64, 0.79, 0.948];
+// True black runs from #000.
+const BLACK_L = [0.0, 0.17, 0.215, 0.25, 0.28, 0.315, 0.365, 0.445, 0.53, 0.64, 0.79, 0.948];
+// Chroma shape for a tinted neutral: quiet at the ends, fuller in the middle.
+const LIGHT_C = [0.007, 0.011, 0.013, 0.015, 0.016, 0.017, 0.018, 0.02, 0.022, 0.022, 0.02, 0.016];
+const DARK_C = [0.014, 0.016, 0.018, 0.019, 0.02, 0.021, 0.022, 0.024, 0.024, 0.022, 0.016, 0.006];
+
+// ---------- themes ----------
+// tint: neutral hue and strength. accent: hue and chroma, or null for monochrome links.
+const THEMES = [
+  { id: "paper", name: "Paper", hue: 80, k: 0.45, accent: { h: 252, c: 0.1 } },
+  { id: "pure", name: "Pure", hue: 0, k: 0, accent: null, black: true },
+  { id: "rose", name: "Rose", hue: 12, k: 1, accent: { h: 12, c: 0.13 } },
+  { id: "lilac", name: "Lilac", hue: 300, k: 1, accent: { h: 298, c: 0.14 } },
+  { id: "sage", name: "Sage", hue: 158, k: 0.85, accent: { h: 155, c: 0.1 } },
+  { id: "sky", name: "Sky", hue: 245, k: 0.9, accent: { h: 245, c: 0.12 } },
+];
+
+function neutral(theme, mode) {
+  const L = mode === "dark" ? (theme.black ? BLACK_L : DARK_L) : LIGHT_L;
+  const Cs = mode === "dark" ? DARK_C : LIGHT_C;
+  return L.map((l, i) => oklch(l, Cs[i] * theme.k, theme.hue));
+}
+
+function accent(theme, mode, ink) {
+  if (!theme.accent) {
+    // Monochrome: links and selection come from the neutral itself.
+    return {
+      3: ink[2], 4: ink[3], 5: ink[4], 6: ink[6], 9: ink[11], 10: ink[10], 11: ink[11],
+      contrast: ink[0],
+    };
+  }
+  const { h, c } = theme.accent;
+  if (mode === "light") {
+    return {
+      3: oklch(0.962, c * 0.22, h), 4: oklch(0.936, c * 0.32, h), 5: oklch(0.905, c * 0.42, h),
+      6: oklch(0.86, c * 0.55, h), 9: oklch(0.585, c, h), 10: oklch(0.545, c, h),
+      11: oklch(0.5, c * 0.92, h), contrast: oklch(0.995, 0, 0),
+    };
+  }
+  return {
+    3: oklch(0.255, c * 0.3, h), 4: oklch(0.29, c * 0.38, h), 5: oklch(0.325, c * 0.46, h),
+    6: oklch(0.4, c * 0.55, h), 9: oklch(0.66, c * 0.95, h), 10: oklch(0.7, c * 0.9, h),
+    11: oklch(0.8, c * 0.72, h), contrast: oklch(0.16, c * 0.2, h),
+  };
+}
+
+function status(mode) {
+  const red = mode === "light"
+    ? { 3: oklch(0.955, 0.025, 25), 6: oklch(0.84, 0.08, 25), 9: oklch(0.6, 0.19, 27), 10: oklch(0.56, 0.19, 27), 11: oklch(0.51, 0.17, 27) }
+    : { 3: oklch(0.26, 0.05, 25), 6: oklch(0.4, 0.1, 25), 9: oklch(0.62, 0.19, 27), 10: oklch(0.66, 0.18, 27), 11: oklch(0.78, 0.11, 25) };
+  const green = mode === "light"
+    ? { 9: oklch(0.64, 0.14, 152), 11: oklch(0.5, 0.11, 152) }
+    : { 9: oklch(0.66, 0.14, 152), 11: oklch(0.8, 0.1, 152) };
+  return { red, green };
+}
+
+// ---------- output ----------
+const checks = [];
+let css = `/* Generated by scripts/themes.mjs. Edit the recipes there, not this file. */\n`;
+const meta = {};
+
+for (const t of THEMES) {
+  for (const mode of ["light", "dark"]) {
+    const ink = neutral(t, mode);
+    const acc = accent(t, mode, ink);
+    const { red, green } = status(mode);
+    const surfaceTop = mode === "light"
+      ? (t.black ? oklch(1, 0, 0) : oklch(0.991, 0.0105 * t.k, t.hue))
+      : ink[0];
+    const ground = mode === "light"
+      ? ink[1]
+      : t.black ? ink[0] : oklch(DARK_L[0] - 0.042, DARK_C[0] * t.k, t.hue);
+    const page = mode === "light" ? surfaceTop : ink[0];
+
+    const sel = `:root[data-tint="${t.id}"][data-mode="${mode}"]`;
+    const lines = [];
+    ink.forEach((c, i) => lines.push(`--root-ink-${i + 1}: ${hex(c)};`));
+    lines.push(`--surface-top: ${hex(surfaceTop)};`);
+    lines.push(`--ground: ${hex(ground)};`);
+    lines.push(`--page: ${hex(page)};`);
+    lines.push(`--shadow-ink: ${rgbTriplet(mode === "light" ? ink[11] : [0, 0, 0])};`);
+    for (const k of [3, 4, 5, 6, 9, 10, 11]) lines.push(`--accent-${k}: ${hex(acc[k])};`);
+    lines.push(`--accent-contrast: ${hex(acc.contrast)};`);
+    for (const k of [3, 6, 9, 10, 11]) lines.push(`--red-${k}: ${hex(red[k])};`);
+    lines.push(`--green-9: ${hex(green[9])};`, `--green-11: ${hex(green[11])};`);
+    css += `${sel} {\n  ${lines.join("\n  ")}\n}\n`;
+
+    meta[`${t.id}-${mode}`] = { page: hex(page), ground: hex(ground), ink12: hex(ink[11]) };
+
+    const c = (a, b) => contrast(a, b).toFixed(2);
+    const top = mode === "light" ? surfaceTop : ink[0];
+    checks.push({
+      theme: `${t.id}/${mode}`,
+      "12 on 1": c(ink[11], ink[0]),
+      "12 on 3": c(ink[11], ink[2]),
+      "11 on 3": c(ink[10], ink[2]),
+      "10 on top": c(ink[9], top),
+      "10 on 3": c(ink[9], ink[2]),
+      "9 on top": c(ink[8], top),
+      "6 vs top": c(ink[5], top),
+      "acc11 on acc3": c(acc[11], acc[3]),
+      "acc11 on page": c(acc[11], page),
+      "red11 on page": c(red[11], page),
+    });
+  }
+}
+
+css += `\n/* Swatch colours for the theme picker: each tint's accent in its own mode. */\n`;
+for (const t of THEMES) {
+  for (const mode of ["light", "dark"]) {
+    const ink = neutral(t, mode);
+    const acc = accent(t, mode, ink);
+    // Paper shows its paper, Pure its ink, the rest their accent.
+    const sw = t.id === "paper" ? oklch(mode === "light" ? 0.74 : 0.7, 0.05, 75) : t.accent ? acc[9] : ink[11];
+    const bg = mode === "light" ? ink[1] : t.black ? [0, 0, 0] : ink[1];
+    css += `:root[data-mode="${mode}"] [data-swatch="${t.id}"] { --swatch: ${hex(sw)}; --swatch-bg: ${hex(bg)}; }\n`;
+  }
+}
+
+for (const out of ["ui/styles/themes.css", "web/themes.css"]) {
+  const p = join(root, out);
+  mkdirSync(dirname(p), { recursive: true });
+  writeFileSync(p, css);
+}
+writeFileSync(join(root, "ui/src/theme-meta.js"),
+  `// Generated by scripts/themes.mjs\nexport const THEMES = ${JSON.stringify(THEMES.map(({ id, name }) => ({ id, name })))};\nexport const THEME_META = ${JSON.stringify(meta, null, 1)};\n`);
+
+console.table(checks);

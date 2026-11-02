@@ -1,0 +1,131 @@
+/* Roles, not values. Colours come from themes.css (--root-ink-*, --accent-*, --page, --ground). */
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: block;
+  src: url("fonts/inter-latin-wght-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Literata Variable";
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: block;
+  src: url("fonts/literata-latin-wght-normal.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Literata Variable";
+  font-style: italic;
+  font-weight: 200 900;
+  font-display: block;
+  src: url("fonts/literata-latin-wght-italic.woff2") format("woff2-variations");
+}
+
+:root {
+  /* Working steps: components use these; surfaces remap 1-7. */
+  --ink-1: var(--root-ink-1); --ink-2: var(--root-ink-2); --ink-3: var(--root-ink-3);
+  --ink-4: var(--root-ink-4); --ink-5: var(--root-ink-5); --ink-6: var(--root-ink-6);
+  --ink-7: var(--root-ink-7); --ink-8: var(--root-ink-8); --ink-9: var(--root-ink-9);
+  --ink-10: var(--root-ink-10); --ink-11: var(--root-ink-11); --ink-12: var(--root-ink-12);
+  --ink-a3: rgb(var(--shadow-ink) / .06);
+  --ink-a4: rgb(var(--shadow-ink) / .1);
+
+  --panel: var(--page);
+  --raised: var(--surface-top);
+  --overlay: var(--surface-top);
+  --line: var(--ink-6);
+  --hairline: 0.5px;
+  --focus-ring: var(--ink-10);
+
+  --primary-bg: var(--ink-12);
+  --primary-fg: var(--ink-1);
+  --primary-hover: color-mix(in oklab, var(--primary-bg) 93%, var(--primary-fg));
+
+  --shadow-button: 0 1px 2px 0 rgb(var(--shadow-ink) / .12), 0 0 0 1px rgb(var(--shadow-ink) / .08);
+  --shadow-primary: 0 0 0 1px var(--ink-1);
+  --shadow-toggle: var(--shadow-button);
+  --shadow-card: 0 0 0 1px rgb(var(--shadow-ink) / .07), 0 1px 2px 0 rgb(var(--shadow-ink) / .12),
+                 0 3px 4px -2px rgb(var(--shadow-ink) / .08);
+  --shadow-panel: 0 0 0 0.5px var(--ink-a4), 0 1px 2px 0 rgb(var(--shadow-ink) / .015),
+                  0 3px 4px -2px rgb(var(--shadow-ink) / .025);
+  --shadow-menu: 0 0 0 1px rgb(var(--shadow-ink) / .08), 0 1px 2px 0 rgb(var(--shadow-ink) / .12),
+                 0 4px 8px -4px rgb(var(--shadow-ink) / .16);
+  --shadow-popover: var(--shadow-menu);
+  --shadow-modal: 0 0 0 1px rgb(var(--shadow-ink) / .07), 0 1px 2px 0 rgb(var(--shadow-ink) / .14),
+                  0 6px 8px -4px rgb(var(--shadow-ink) / .14);
+  --shadow-badge: 0 1px 2px 0 color-mix(in srgb, currentColor 16%, transparent),
+                  0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+  --backdrop: rgb(0 0 0 / .3);
+
+  --radius-control: 6px;
+  --radius-xs: calc(var(--radius-control) / 2);
+  --radius-sm: calc(var(--radius-control) - 2px);
+  --radius-container: calc(var(--radius-control) + 2px);
+  --radius-feature: calc(var(--radius-container) * 1.5);
+
+  --control-h: 36px; --control-h-compact: 32px; --control-h-pill: 28px;
+  --control-h-inline: 24px; --control-h-icon: 22px; --badge-h: 20px; --key-chip: 18px;
+
+  --font-sans: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-serif: "Literata Variable", "Iowan Old Style", Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --font-weight-ui: 500;
+  --text-meta: 12px;    --leading-meta: 16px;
+  --text-body: 13px;    --leading-body: 20px;
+  --text-title: 16px;   --leading-title: 24px;
+  --text-section: 20px; --leading-section: 28px;
+  --text-display: 32px; --leading-display: 40px;
+  --tracking-label: -0.01em; --tracking-display: -0.02em;
+
+  --dur-hover: 150ms; --dur-swap: 200ms; --dur-modal: 240ms; --dur-move: 300ms;
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-move: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Dark: colour and shadow only, never sizes. */
+:root[data-mode="dark"] {
+  --raised: var(--root-ink-2);
+  --overlay: var(--root-ink-2);
+  --line: var(--ink-5);
+  --ink-a3: rgb(255 255 255 / .05);
+  --ink-a4: rgb(255 255 255 / .08);
+  --shadow-button: 0 0 0 0.5px var(--ink-6), 0 1px 2px 0 rgb(0 0 0 / .5);
+  --shadow-primary: 0 0 0 0.5px var(--primary-bg), 0 1px 2px 0 rgb(0 0 0 / .5);
+  --shadow-card: 0 0 0 0.5px var(--ink-6), 0 1px 2px 0 rgb(0 0 0 / .5), 0 3px 4px -2px rgb(0 0 0 / .4);
+  --shadow-panel: 0 0 0 0.5px var(--ink-a3), 0 1px 2px 0 rgb(0 0 0 / .5), 0 3px 4px -2px rgb(0 0 0 / .4);
+  --shadow-menu: 0 0 0 0.5px var(--ink-7), 0 1px 2px 0 rgb(0 0 0 / .5), 0 4px 8px -4px rgb(0 0 0 / .5);
+  --shadow-modal: 0 0 0 0.5px var(--ink-7), 0 1px 2px 0 rgb(0 0 0 / .5), 0 6px 8px -4px rgb(0 0 0 / .5);
+  --shadow-badge: 0 0 0 0.5px color-mix(in srgb, currentColor 34%, #000), 0 1px 2px 0 rgb(0 0 0 / .5);
+  --backdrop: rgb(0 0 0 / .9);
+}
+
+/* The step-shift rule: a surface remaps steps 1-7 so children keep their contrast. */
+:root[data-mode="light"] :is(.surface-rail, .surface-panel, .surface-overlay, .surface-raised) {
+  --line: var(--ink-6);
+  --shadow-primary: 0 0 0 1px var(--ink-1);
+}
+:root[data-mode="light"] .surface-rail {
+  --ink-1: var(--root-ink-2); --ink-2: var(--root-ink-3); --ink-3: var(--root-ink-4);
+  --ink-4: var(--root-ink-5); --ink-5: var(--root-ink-6); --ink-6: var(--root-ink-7);
+  --ink-7: var(--root-ink-8);
+}
+:root[data-mode="light"] .surface-panel { --ink-1: var(--surface-top); }
+:root[data-mode="light"] .surface-overlay {
+  --ink-1: var(--surface-top); --ink-2: var(--surface-top); --ink-3: var(--root-ink-3);
+  --ink-4: var(--root-ink-4); --ink-5: var(--root-ink-5); --ink-6: var(--root-ink-6);
+  --ink-7: var(--root-ink-7);
+}
+:root[data-mode="light"] .surface-raised {
+  --ink-1: var(--root-ink-1); --ink-2: var(--root-ink-2); --ink-3: var(--root-ink-3);
+  --ink-4: var(--root-ink-4); --ink-5: var(--root-ink-5); --ink-6: var(--root-ink-6);
+  --ink-7: var(--root-ink-7);
+}
+:root[data-mode="dark"] .surface-panel {
+  --shadow-button: 0 0 0 0.5px var(--root-ink-6), 0 1px 2px 0 rgb(0 0 0 / .5);
+  --shadow-toggle: var(--shadow-button);
+}
+:root[data-mode="dark"] :is(.surface-raised, .surface-overlay) {
+  --shadow-button: 0 0 0 0.5px var(--root-ink-7), 0 1px 2px 0 rgb(0 0 0 / .5);
+  --shadow-toggle: var(--shadow-button);
+}

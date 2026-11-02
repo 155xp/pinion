@@ -1,0 +1,61 @@
+[package]
+name = "pinion"
+version = "0.1.0"
+description = "A quiet place to write"
+edition = "2021"
+license = "MIT"
+rust-version = "1.80"
+
+[build-dependencies]
+tauri-build = { version = "2.7", features = [] }
+
+[dependencies]
+tauri = { version = "2.12", features = ["protocol-asset", "macos-private-api"] }
+tauri-plugin-dialog = "2.8"
+tauri-plugin-opener = "2"
+tauri-plugin-single-instance = "2.5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Voice: only in the "Pinion with voice" build.
+tauri-plugin-global-shortcut = { version = "2.4", optional = true }
+tauri-plugin-autostart = { version = "2", optional = true }
+cpal = { version = "0.18", optional = true }
+enigo = { version = "0.6", optional = true }
+arboard = { version = "3.7", optional = true, default-features = false }
+ureq = { version = "3", optional = true, default-features = false, features = ["native-tls"] }
+native-tls = { version = "0.2", optional = true }
+sha2 = { version = "0.10", optional = true }
+chrono = { version = "0.4", optional = true, default-features = false, features = ["clock"] }
+parakeet-sys = { path = "../crates/parakeet-sys", optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# PulseAudio (and PipeWire's pulse server) expose system sound as "monitor" sources.
+cpal = { version = "0.18", optional = true, features = ["pulseaudio"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+core-foundation = { version = "0.10", optional = true }
+
+[features]
+default = []
+voice = [
+  "tauri/tray-icon",
+  "dep:tauri-plugin-global-shortcut",
+  "dep:tauri-plugin-autostart",
+  "dep:cpal",
+  "dep:enigo",
+  "dep:arboard",
+  "dep:ureq",
+  "dep:native-tls",
+  "dep:sha2",
+  "dep:chrono",
+  "dep:core-foundation",
+  "dep:parakeet-sys",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "z"
+panic = "abort"
+strip = true
